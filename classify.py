@@ -10,8 +10,8 @@
 
 import numpy
 from keras.datasets import mnist
-from keras.models improt Sequential
-from keras.layers improt Dense
+from keras.models import Sequential
+from keras.layers import Dense
 from keras.layers import Dropout
 from keras.utils import np_utils
 
@@ -26,4 +26,19 @@ x_test = x_test.reshape(x_test.shape[0], num_pixels).astype('float32')
 x_train = x_train / 255
 x_test = x_test / 255
 
+y_train = np_utils.to_categorical(y_train)
+y_test = np_utils.to_categorical(y_test)
+num_classes = y_test.shape[1]
+
+def baseline():
+	model = Sequential()
+	model.add(Dense(num_pixels, input_dim=num_pixels, kernel_initializer='normal', activation='relu'))
+	model.add(Dense(num_classes, kernel_initializer='normal', activation='softmax'))
+	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+	return model
+
+model = baseline()
+model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=10, batch_size=200, verbose=2)
+scores = model.evaluate(x_test, y_test, verbose=0)
+print("Baseline Error: %.2F%%" % (100-scores[1]*100))
 
