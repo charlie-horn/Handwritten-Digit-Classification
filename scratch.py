@@ -37,14 +37,32 @@ x_test = x_test.reshape(x_test.shape[0], num_pixels).astype('float32')
 x_train = x_train / 255
 x_test = x_test / 255
 
-
 y_train = np_utils.to_categorical(y_train)
 y_test = np_utils.to_categorical(y_test)
 num_classes = y_test.shape[1]
 
+# Instantiate Weights
 W = np.random.randn(D,M)
 V = np.random.randn(M,K)
+
 Z = sigmoid(X.dot(W))
 p_y_given_x = softmax(Z.dot(V))
+
+#Training
+def cost(T,Y):
+    return -(T*np.log(Y)).sum()
+
+#weight = weight - learning_rate*gradient
+
+def forward(X, W1, W2):
+    Z = sigmoid(X.dot(W1))
+    Y = softmax(Z.dot(W2))
+    return Y,Z
+
+def grad_W2(Z,T,Y):
+    return Z.T.dot(Y - T)
+
+def grad_W1(X,Z,T,W2):
+    return X.T.dot(((Y - T).dot(W2.T)*(Z*(1 - Z))))
 
 
