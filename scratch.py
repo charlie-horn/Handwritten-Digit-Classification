@@ -78,12 +78,38 @@ epochs = 10
 learning_rate = 0.0000000001
 C = 0
 
-while(not math.isnan(C)):
-    for i in range(epochs):
-        Y, Z = forward(x_train, W1, W2)
-        W2 -= learning_rate*grad_W2(Z, y_train, Y)
-        W1 -= learning_rate*grad_W1(x_train, Z, y_train, Y, W2)
-        C = cost(y_train, Y)
-        print(C)
-    learning_rate = learning_rate*10
-    print("New rate : " + string(learning_rate))
+#while(not math.isnan(C)):
+for i in range(epochs):
+    Y, Z = forward(x_train, W1, W2)
+    W2 -= learning_rate*grad_W2(Z, y_train, Y)
+    W1 -= learning_rate*grad_W1(x_train, Z, y_train, Y, W2)
+    C = cost(y_train, Y)
+    print(C)
+#    learning_rate = learning_rate*10
+#    print("New rate : " + str(learning_rate))
+
+#Testing
+
+Y, Z = forward(x_test, W1, W2)
+successes = 0
+failures = 0
+hypothesis = 0
+for i in range(Y.shape[0]):
+    for j in range(Y.shape[1]):
+        if Y[i][j] > Y[i][hypothesis]:
+            hypothesis = j
+    for j in range(y_test.shape[0]):
+        if y_test[i][j] == 1:
+            target = j
+            break
+    if hypothesis == target:
+#        print("SUCCESS: Guessed " + str(hypothesis) + " correctly")
+        successes += 1
+    else:
+#        print("FAILED: Guessed " + str(hypothesis) + " not " + str(target))
+        failures += 1
+
+final_result = successes*100/(successes + failures)
+print("Final Grade: " + str(final_result) + "%")
+
+
