@@ -5,6 +5,7 @@ from keras.layers import Dense
 from keras.layers import Dropout
 from keras.utils import np_utils
 import math
+import cv2
 
 def sigmoid(x):
 	return 1/(1 + np.exp(-x))
@@ -111,5 +112,10 @@ for i in range(Y.shape[0]):
 
 final_result = successes*100/(successes + failures)
 print("Final Grade: " + str(final_result) + "%")
+
+#Input drawing
+drawing = False # true if mouse is pressed
+mode = True # if True, draw rectangle. Press 'm' to toggle to curve
+ix,iy = -1,-1
 
 
