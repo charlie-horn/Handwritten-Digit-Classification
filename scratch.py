@@ -6,6 +6,8 @@ from keras.layers import Dropout
 from keras.utils import np_utils
 import math
 import cv2
+from scipy.misc import imread,imsave
+
 
 def sigmoid(x):
 	return 1/(1 + np.exp(-x))
@@ -35,6 +37,11 @@ def grad_W2(Z,T,Y):
 
 def grad_W1(X,Z,T,Y,W2):
   return X.T.dot(((Y - T).dot(W2.T)*(Z*(1 - Z))))
+
+def draw(event, x, y):
+  global img, drawing
+  if event == cv2.EVENT_LBUTTONDOWN:
+    img[x,y] = 0
 
 
 #x_train is 60000 samples, 28x28 pixel images
@@ -114,8 +121,34 @@ final_result = successes*100/(successes + failures)
 print("Final Grade: " + str(final_result) + "%")
 
 #Input drawing
-drawing = False # true if mouse is pressed
-mode = True # if True, draw rectangle. Press 'm' to toggle to curve
-ix,iy = -1,-1
+
+img = zeros([28,28])
+h = len(img)
+w = len(img[0])
+
+for y in range(h):
+  for x in range(w):
+    img[y,x] = 255
+
+# imsave("Result.jpg",imga)
+
+cv2.namedWindow("image")
+cv2.setMouseCallback("image", draw)
+
+while(true):
+  cv2.imshow("image", white_img)
+  key = cv2.waitKey(1) & 0xFF
+  if key == ord("q"):
+    break
+
+
+
+
+
+
+
+
+
+
 
 
