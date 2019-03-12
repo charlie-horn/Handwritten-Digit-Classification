@@ -6,21 +6,20 @@ from keras.layers import Dropout
 from keras.utils import np_utils
 import math
 import cv2
-#from scipy.misc import imread,imsave
-
+import sys
 
 def sigmoid(x):
-	return 1/(1 + np.exp(-x))
+  return 1/(1 + np.exp(-x))
 
 def softmax(x):
-	expX = np.exp(x)
-	return expX / expX.sum(axis=1, keepdims=True)
+  expX = np.exp(x)
+  return expX / expX.sum(axis=1, keepdims=True)
 
 def relu(x):
-	if x<0:
-		return 0
-	else:
-		return x
+  if x<0:
+    return 0
+  else:
+    return x
 
 def cost(T,Y):
   return -(T*np.log(Y)).sum()
@@ -41,7 +40,13 @@ def grad_W1(X,Z,T,Y,W2):
 def draw(event, x, y, flags, param):
   global img, drawing
   if event == cv2.EVENT_LBUTTONDOWN:
+    drawing = True
     img[y,x] = 0
+  elif event == cv2.EVENT_MOUSEMOVE:
+    if drawing:
+      img[y,x] = 0
+  elif event == cv2.EVENT_LBUTTONUP:
+    drawing = False
 
 
 #x_train is 60000 samples, 28x28 pixel images
@@ -82,7 +87,7 @@ Y = softmax(Z.dot(W2))
 
 #Training
 
-epochs = 2
+epochs = 10
 learning_rate = 0.0000000001
 C = 0
 
@@ -96,69 +101,68 @@ for i in range(epochs):
 #    learning_rate = learning_rate*10
 #    print("New rate : " + str(learning_rate))
 
+try:
+    opt = sys.argv[1]
+except:
+    opt = None
+
 #Testing
+if opt == "--test":
+    Y, Z = forward(x_test, W1, W2)
+    successes = 0
+    failures = 0
+    hypothesis = 0
+    for i in range(Y.shape[0]):
+        for j in range(Y.shape[1]):
+            if Y[i][j] > Y[i][hypothesis]:
+                hypothesis = j
+        for j in range(y_test.shape[0]):
+            if y_test[i][j] == 1:
+                target = j
+                break
+        if hypothesis == target:
+    #        print("SUCCESS: Guessed " + str(hypothesis) + " correctly")
+            successes += 1
+        else:
+    #        print("FAILED: Guessed " + str(hypothesis) + " not " + str(target))
+            failures += 1
 
-Y, Z = forward(x_test, W1, W2)
-successes = 0
-failures = 0
-hypothesis = 0
-for i in range(Y.shape[0]):
-    for j in range(Y.shape[1]):
-        if Y[i][j] > Y[i][hypothesis]:
-            hypothesis = j
-    for j in range(y_test.shape[0]):
-        if y_test[i][j] == 1:
-            target = j
-            break
-    if hypothesis == target:
-#        print("SUCCESS: Guessed " + str(hypothesis) + " correctly")
-        successes += 1
-    else:
-#        print("FAILED: Guessed " + str(hypothesis) + " not " + str(target))
-        failures += 1
+    final_result = successes*100/(successes + failures)
+    print("Final Grade: " + str(final_result) + "%")
 
-final_result = successes*100/(successes + failures)
-print("Final Grade: " + str(final_result) + "%")
+else: 
+    #Input drawing
 
-#Input drawing
+    img = np.zeros([28,28])
+    h = len(img)
+    w = len(img[0])
 
-img = np.zeros([28,28])
-h = len(img)
-w = len(img[0])
+    for y in range(h):
+      for x in range(w):
+        img[y,x] = 255
 
-for y in range(h):
-  for x in range(w):
-    img[y,x] = 255
+    # imsave("Result.jpg",imga)
 
-# imsave("Result.jpg",imga)
+    cv2.namedWindow("image")
+    cv2.setMouseCallback("image", draw)
+    drawing = False
 
-cv2.namedWindow("image")
-cv2.setMouseCallback("image", draw)
+    while(True):
+      cv2.imshow("image", img)
+      key = cv2.waitKey(1) & 0xFF
+      if key == ord("q"):
+        break
 
-while(True):
-  cv2.imshow("image", img)
-  key = cv2.waitKey(1) & 0xFF
-  if key == ord("q"):
-    break
+    # Test the image
+    img = img.reshape(1, num_pixels).astype('float32') / 255
 
-# Test the image
-img = img.reshape(1, num_pixels).astype('float32')
+    Y, Z = forward(img, W1, W2)
+    hypothesis = 0
+    for i in range(Y.shape[1]):
+        print(Y[0][i])
+        if Y[0][i] > Y[0][hypothesis]:
+            hypothesis = i
 
-Y, Z = forward(img, W1, W2)
-hypothesis = 0
-for i in range(Y.shape[1]):
-    if Y[0][i] > Y[0][hypothesis]:
-        hypothesis = i
+    print("Guess: " + str(hypothesis))
 
-print("Guess: " + str(hypothesis))
-
-
-
-
-
-
-
-
-
-
-
+    cv2.destroyAllWindows()
