@@ -6,7 +6,7 @@ from keras.layers import Dropout
 from keras.utils import np_utils
 import math
 import cv2
-from scipy.misc import imread,imsave
+#from scipy.misc import imread,imsave
 
 
 def sigmoid(x):
@@ -38,10 +38,10 @@ def grad_W2(Z,T,Y):
 def grad_W1(X,Z,T,Y,W2):
   return X.T.dot(((Y - T).dot(W2.T)*(Z*(1 - Z))))
 
-def draw(event, x, y):
+def draw(event, x, y, flags, param):
   global img, drawing
   if event == cv2.EVENT_LBUTTONDOWN:
-    img[x,y] = 0
+    img[y,x] = 0
 
 
 #x_train is 60000 samples, 28x28 pixel images
@@ -82,7 +82,7 @@ Y = softmax(Z.dot(W2))
 
 #Training
 
-epochs = 10
+epochs = 2
 learning_rate = 0.0000000001
 C = 0
 
@@ -122,7 +122,7 @@ print("Final Grade: " + str(final_result) + "%")
 
 #Input drawing
 
-img = zeros([28,28])
+img = np.zeros([28,28])
 h = len(img)
 w = len(img[0])
 
@@ -135,12 +135,22 @@ for y in range(h):
 cv2.namedWindow("image")
 cv2.setMouseCallback("image", draw)
 
-while(true):
-  cv2.imshow("image", white_img)
+while(True):
+  cv2.imshow("image", img)
   key = cv2.waitKey(1) & 0xFF
   if key == ord("q"):
     break
 
+# Test the image
+img = img.reshape(1, num_pixels).astype('float32')
+
+Y, Z = forward(img, W1, W2)
+hypothesis = 0
+for i in range(Y.shape[1]):
+    if Y[0][i] > Y[0][hypothesis]:
+        hypothesis = i
+
+print("Guess: " + str(hypothesis))
 
 
 
