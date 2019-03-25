@@ -87,16 +87,6 @@ for i in range(D + 1):
     else:
         W[i] = np.random.randn(M[i-1],M[i])
 
-# Calculate initial internal layers
-Z = []
-for i in range(D + 1):
-    if i == 0:
-        Z[i] = sigmoid(x_train.dot(W[i]))
-    elif i == D:
-        Z[i] = softmax(Z[i-1].dot(W[i]))
-    else:
-        Z[i] = sigmoid(Z[i-1].dot(W[i]))
-
 #Training
 
 epochs = 10
@@ -104,8 +94,20 @@ learning_rate = 0.0000000001
 C = 0
 
 #while(not math.isnan(C)):
+Z = []
+gradient = []
 for i in range(epochs):
-    Y, Z = forward(x_train, W1, W2)
+    # Calculate internal layers
+    for j in range(D + 1):
+        if i == 0:
+            Z[i] = sigmoid(x_train.dot(W[i]))
+        elif i == D:
+            Z[i] = softmax(Z[i-1].dot(W[i]))
+        else:
+            Z[i] = sigmoid(Z[i-1].dot(W[i]))
+    # Calculate gradients wrt weights
+    for j in range(D + 1):
+        gradient[i] = 
     W2 -= learning_rate*grad_W2(Z, y_train, Y)
     W1 -= learning_rate*grad_W1(x_train, Z, y_train, Y, W2)
     C = cost(y_train, Y)
