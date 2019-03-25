@@ -26,7 +26,7 @@ def cost(T,Y):
 
 #weight = weight - learning_rate*gradient
 
-def forward(X, W1, W2):
+def forward(X, W):
   Z = sigmoid(X.dot(W1))
   Y = softmax(Z.dot(W2))
   return Y,Z
@@ -72,18 +72,30 @@ num_classes = y_test.shape[1]
 
 # M is the size of hidden layer
 # K is the number of classes
-# D is the size of a sample
-D = num_pixels
+# P is the size of a sample
+P = num_pixels
 K = num_classes
-M = D
+M = P
 
+# Initialize Weights
+W = []
+for i in range(D + 1):
+    if i == 0:
+        W[i] = np.random.randn(P,M[i])
+    elif i == D:
+        W[i] = np.random.randn(M[i-1],K)
+    else:
+        W[i] = np.random.randn(M[i-1],M[i])
 
-# Instantiate Weights
-W1 = np.random.randn(D,M)
-W2 = np.random.randn(M,K)
-
-Z = sigmoid(x_train.dot(W1))
-Y = softmax(Z.dot(W2))
+# Calculate initial internal layers
+Z = []
+for i in range(D + 1):
+    if i == 0:
+        Z[i] = sigmoid(x_train.dot(W[i]))
+    elif i == D:
+        Z[i] = softmax(Z[i-1].dot(W[i]))
+    else:
+        Z[i] = sigmoid(Z[i-1].dot(W[i]))
 
 #Training
 
