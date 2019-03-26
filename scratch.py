@@ -31,10 +31,10 @@ def forward(X, W):
   Y = softmax(Z.dot(W2))
   return Y,Z
 
-def grad_W2(Z,T,Y):
+def last_grad(Z,T,Y):
   return Z.T.dot(Y - T)
 
-def grad_W1(X,Z,T,Y,W2):
+def grad(X,Z,T,Y,W2):
   return X.T.dot(((Y - T).dot(W2.T)*(Z*(1 - Z))))
 
 def draw(event, x, y, flags, param):
@@ -48,6 +48,17 @@ def draw(event, x, y, flags, param):
   elif event == cv2.EVENT_LBUTTONUP:
     drawing = False
 
+# Parse command line args
+for i,arg in enumerate(sys.argv):
+    if arg == "-D":
+        D = int(sys.argv[i+1])
+        print("D: " + str(D))
+    elif arg == "-M":
+        M = [int(x) for x in sys.argv[i+1].split(',')]
+        print("M: " + str(M))
+
+if len(M) != D:
+    sys.exit()
 
 #x_train is 60000 samples, 28x28 pixel images
 #y_train is the 60000 targets, with values 0-9
@@ -75,7 +86,7 @@ num_classes = y_test.shape[1]
 # P is the size of a sample
 P = num_pixels
 K = num_classes
-M = P
+#M = P
 
 # Initialize Weights
 W = []
@@ -99,18 +110,24 @@ gradient = []
 for i in range(epochs):
     # Calculate internal layers
     for j in range(D + 1):
-        if i == 0:
-            Z[i] = sigmoid(x_train.dot(W[i]))
-        elif i == D:
-            Z[i] = softmax(Z[i-1].dot(W[i]))
+        if j == 0:
+            Z[j] = sigmoid(x_train.dot(W[j]))
+        elif j == D:
+            Z[j] = softmax(Z[j-1].dot(W[j]))
         else:
-            Z[i] = sigmoid(Z[i-1].dot(W[i]))
+            Z[j] = sigmoid(Z[j-1].dot(W[j]))
     # Calculate gradients wrt weights
     for j in range(D + 1):
-        gradient[i] = 
-    W2 -= learning_rate*grad_W2(Z, y_train, Y)
-    W1 -= learning_rate*grad_W1(x_train, Z, y_train, Y, W2)
-    C = cost(y_train, Y)
+        if j == D:
+            gradient[j] = last_grad(Z[j-1], y_train, Z[-1])
+        else:
+            gradient[j] = grad(x_train,Z[j], y_train, Z[-1], W[j+1])
+    # Calculate new weights
+    for j in range(D + 1):
+    #W2 -= learning_rate*grad_W2(Z, y_train, Y)
+    #W1 -= learning_rate*grad_W1(x_train, Z, y_train, Y, W2)
+        W[j] -= learning_rate*grad[j]
+    C = cost(y_train, Z[-1])
     print(C)
 #    learning_rate = learning_rate*10
 #    print("New rate : " + str(learning_rate))
