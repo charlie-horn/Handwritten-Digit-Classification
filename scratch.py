@@ -34,8 +34,8 @@ def forward(X, W):
 def last_grad(Z,T,Y):
   return Z.T.dot(Y - T)
 
-def grad(X,Z,T,Y,W2):
-  return X.T.dot(((Y - T).dot(W2.T)*(Z*(1 - Z))))
+def grad(X,Z,T,Y,W):
+  return X.T.dot(((Y - T).dot(W.T)*(Z*(1 - Z))))
 
 def draw(event, x, y, flags, param):
   global img, drawing
@@ -92,20 +92,30 @@ K = num_classes
 W = []
 for i in range(D + 1):
     if i == 0:
-        W[i] = np.random.randn(P,M[i])
+        W.append(np.random.randn(P,M[i]))
     elif i == D:
-        W[i] = np.random.randn(M[i-1],K)
+        W.append(np.random.randn(M[i-1],K))
     else:
-        W[i] = np.random.randn(M[i-1],M[i])
+        W.append(np.random.randn(M[i-1],M[i]))
 
-#Training
+# Initialize Z
+Z = []
+for i in range(D + 1):
+    if i == 0:
+        Z.append(np.zeros([P,M[i]]))
+    elif i == D:
+        Z.append(np.zeros([M[i-1],K]))
+    else:
+        Z.append(np.zeros([M[i-1],M[i]]))
+
+# Training
 
 epochs = 10
 learning_rate = 0.0000000001
 C = 0
 
 #while(not math.isnan(C)):
-Z = []
+
 gradient = []
 for i in range(epochs):
     # Calculate internal layers
@@ -121,7 +131,8 @@ for i in range(epochs):
         if j == D:
             gradient[j] = last_grad(Z[j-1], y_train, Z[-1])
         else:
-            gradient[j] = grad(x_train,Z[j], y_train, Z[-1], W[j+1])
+            temp_output = softmax(Z[j-1].dot(W[-1]))
+            gradient[j] = last_grad(Z[j-1], y_train, temp_output)
     # Calculate new weights
     for j in range(D + 1):
     #W2 -= learning_rate*grad_W2(Z, y_train, Y)
