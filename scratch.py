@@ -7,6 +7,8 @@ from keras.utils import np_utils
 import math
 import cv2
 import sys
+import json
+
 
 def sigmoid(x):
   return 1/(1 + np.exp(-x))
@@ -48,6 +50,30 @@ def draw(event, x, y, flags, param):
   elif event == cv2.EVENT_LBUTTONUP:
     drawing = False
 
+# Parse command line args
+## Set defaults
+learning_rate = 0.000000001
+M = 784
+test = False
+epochs = 10
+
+## Set new values
+for i,arg in enumerate(sys.argv):
+    if arg == '-L':
+        learning_rate = float(sys.argv[i+1])
+    elif arg == '-M':
+        M = int(sys.argv[i+1])
+    elif arg == '-T':
+        test = True
+        print(test)
+    elif arg == '-E':
+        epochs = int(sys.argv[i+1])
+        print(epochs)
+    elif arg == '--help' or arg == '-h':
+        continue
+        #TODO add help message
+    else:
+        continue
 
 #x_train is 60000 samples, 28x28 pixel images
 #y_train is the 60000 targets, with values 0-9
@@ -68,15 +94,12 @@ y_train = np_utils.to_categorical(y_train)
 y_test = np_utils.to_categorical(y_test)
 num_classes = y_test.shape[1]
 
-
-
 # M is the size of hidden layer
 # K is the number of classes
 # D is the size of a sample
 D = num_pixels
 K = num_classes
-M = D
-
+M = M
 
 # Instantiate Weights
 W1 = np.random.randn(D,M)
@@ -86,28 +109,17 @@ Z = sigmoid(x_train.dot(W1))
 Y = softmax(Z.dot(W2))
 
 #Training
-
-epochs = 10
-learning_rate = 0.0000000001
 C = 0
 
-#while(not math.isnan(C)):
 for i in range(epochs):
     Y, Z = forward(x_train, W1, W2)
     W2 -= learning_rate*grad_W2(Z, y_train, Y)
     W1 -= learning_rate*grad_W1(x_train, Z, y_train, Y, W2)
     C = cost(y_train, Y)
     print(C)
-#    learning_rate = learning_rate*10
-#    print("New rate : " + str(learning_rate))
-
-try:
-    opt = sys.argv[1]
-except:
-    opt = None
 
 #Testing
-if opt == "--test":
+if test:
     Y, Z = forward(x_test, W1, W2)
     successes = 0
     failures = 0
@@ -129,6 +141,16 @@ if opt == "--test":
 
     final_result = successes*100/(successes + failures)
     print("Final Grade: " + str(final_result) + "%")
+    
+    result = {"M" : M, "E": epochs, "L": learning_rate, "Score": final_result}
+
+    with open('results.json', 'r') as r:
+        results = json.load(r)
+
+    results["Testing Results"].append(result)
+
+    with open('results.json', 'w') as r:
+        json.dump(results, r)
 
 else: 
     #Input drawing
@@ -146,23 +168,32 @@ else:
     cv2.namedWindow("image")
     cv2.setMouseCallback("image", draw)
     drawing = False
-
     while(True):
-      cv2.imshow("image", img)
-      key = cv2.waitKey(1) & 0xFF
-      if key == ord("q"):
-        break
-
-    # Test the image
-    img = img.reshape(1, num_pixels).astype('float32') / 255
-
-    Y, Z = forward(img, W1, W2)
-    hypothesis = 0
-    for i in range(Y.shape[1]):
-        print(Y[0][i])
-        if Y[0][i] > Y[0][hypothesis]:
-            hypothesis = i
-
-    print("Guess: " + str(hypothesis))
+        cv2.imshow("image", img)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"): 
+            img = img.reshape(1, num_pixels).astype('float32') / 255
+            Y, Z = forward(img, W1, W2)
+            hypothesis = 0
+            for i in range(Y.shape[1]):
+                if Y[0][i] > Y[0][hypothesis]:
+                    hypothesis = i
+            print("Guess: " + str(hypothesis))
+            break
+        elif key == ord("n"):
+            img = img.reshape(1, num_pixels).astype('float32') / 255
+            Y, Z = forward(img, W1, W2)
+            hypothesis = 0
+            for i in range(Y.shape[1]):
+                if Y[0][i] > Y[0][hypothesis]:
+                    hypothesis = i
+            print("Guess: " + str(hypothesis))
+            # Reset image
+            img = np.zeros([28,28])
+            h = len(img)
+            w = len(img[0])
+            for y in range(h):
+              for x in range(w):
+                img[y,x] = 255
 
     cv2.destroyAllWindows()

@@ -21,10 +21,12 @@ scratch.py : Neural network implementation to classify handwritten digits from 0
     - Structure : 
         - Input layer :
             - P = Pixels = 784 (28x28 images)
-        - Intermediate layers:
-            - D = Depth
-            - Currently D=1 layer (TODO deepen neural net and evaluate optimal number of intermediate layers)
-            - M[1]: 784 neurons (TODO tweak sizes)
+        - Intermediate layer:
+            - Currently D=1 layer 
+                - TODO deepen neural net and evaluate optimal number of intermediate layers
+                - See branch 'add_depth'
+                - Biggest problem is finding the derivative of the Cost function wrt. the weight matrices
+            - M: 784 neurons (TODO tweak sizes)
         - Output layer :
             - K: 10 neurons (number of classes)
     - Usage:
@@ -33,8 +35,18 @@ scratch.py : Neural network implementation to classify handwritten digits from 0
             - Draw digit with mouse, press 'q' when finished
             - Program will print its best guess
         - $ python scratch.py --test :
-            - Train on 60000 training images
-            - Test on 10000 testing images
-            - Print the percentage of correct guesses
+            - '-E' :
+                - Number of epochs
+                - Default = 10
+            - '-T'
+                - Test the configuration
+                - test on 10000 labeled images, and return results as a percentage
+            - '-L' :
+                - Learning rate
+                - Default = '0.000000001'
+            - '-M' :
+                - Size of the intermediate layer
+                - Default = 784
     - Results :
-        - D = 1, M = [784] : 
+        - M = 784, E = 100, L = 0.0000001 : %9.1 
+        - M = 1000, E = 100, L = 0.0000001 : %15.08
