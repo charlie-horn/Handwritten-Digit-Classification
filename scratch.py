@@ -133,17 +133,30 @@ if test:
                 target = j
                 break
         if hypothesis == target:
-    #        print("SUCCESS: Guessed " + str(hypothesis) + " correctly")
             successes += 1
         else:
-    #        print("FAILED: Guessed " + str(hypothesis) + " not " + str(target))
             failures += 1
 
     final_result = successes*100/(successes + failures)
     print("Final Grade: " + str(final_result) + "%")
     
-    result = {"M" : M, "E": epochs, "L": learning_rate, "Score": final_result}
+    # Record results
 
+    result = {"M" : M, "E": epochs, "L": learning_rate, "Score": final_result}
+    
+    # Check if we beat the top score and write to top_score.json
+    with open('top_score.json','r') as s:
+        top_score = json.load(s)
+
+    if top_score["Score"] < final_result:
+        with open('top_score.json', 'w') as s:
+            json.dump(result, s)
+
+        with open('W1.txt', 'w') as w:
+            w.write(str(W1))
+        with open('W2.txt', 'w') as w:
+            w.write(str(W2))
+    # Write results to results.json
     with open('results.json', 'r') as r:
         results = json.load(r)
 
